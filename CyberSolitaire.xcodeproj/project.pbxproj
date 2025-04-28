@@ -6,6 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		44651B682DBFC7C900D8EDE2 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 44651B672DBFC7C200D8EDE2 /* LICENSE */; };
+		44651B6A2DBFC81F00D8EDE2 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 44651B692DBFC81800D8EDE2 /* .gitignore */; };
+		44651B6C2DBFC87F00D8EDE2 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 44651B6B2DBFC87900D8EDE2 /* README.md */; };
+		44E6A46E2DBF73650009500A /* BGSMM_DevKit in Frameworks */ = {isa = PBXBuildFile; productRef = 44E6A46D2DBF73650009500A /* BGSMM_DevKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		44E6A44F2DBF730F0009500A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,6 +31,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		44651B662DBFC49400D8EDE2 /* DevDocs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DevDocs; sourceTree = "<group>"; };
+		44651B672DBFC7C200D8EDE2 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		44651B692DBFC81800D8EDE2 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		44651B6B2DBFC87900D8EDE2 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		44E6A4372DBF730D0009500A /* CyberSolitaire.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CyberSolitaire.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		44E6A44E2DBF730F0009500A /* CyberSolitaireTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CyberSolitaireTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		44E6A4582DBF73100009500A /* CyberSolitaireUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CyberSolitaireUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -65,6 +76,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				44E6A46E2DBF73650009500A /* BGSMM_DevKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,6 +100,10 @@
 		44E6A42E2DBF730D0009500A = {
 			isa = PBXGroup;
 			children = (
+				44651B692DBFC81800D8EDE2 /* .gitignore */,
+				44651B672DBFC7C200D8EDE2 /* LICENSE */,
+				44651B6B2DBFC87900D8EDE2 /* README.md */,
+				44651B662DBFC49400D8EDE2 /* DevDocs */,
 				44E6A4392DBF730D0009500A /* CyberSolitaire */,
 				44E6A4512DBF730F0009500A /* CyberSolitaireTests */,
 				44E6A45B2DBF73100009500A /* CyberSolitaireUITests */,
@@ -125,6 +141,7 @@
 			);
 			name = CyberSolitaire;
 			packageProductDependencies = (
+				44E6A46D2DBF73650009500A /* BGSMM_DevKit */,
 			);
 			productName = CyberSolitaire;
 			productReference = 44E6A4372DBF730D0009500A /* CyberSolitaire.app */;
@@ -208,6 +225,9 @@
 			);
 			mainGroup = 44E6A42E2DBF730D0009500A;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				44E6A46C2DBF73650009500A /* XCLocalSwiftPackageReference "../BGSMM_DevKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 44E6A4382DBF730D0009500A /* Products */;
 			projectDirPath = "";
@@ -225,6 +245,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				44651B6A2DBFC81F00D8EDE2 /* .gitignore in Resources */,
+				44651B6C2DBFC87F00D8EDE2 /* README.md in Resources */,
+				44651B682DBFC7C900D8EDE2 /* LICENSE in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -295,11 +318,13 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CyberSolitaire/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.card-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -326,11 +351,13 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CyberSolitaire/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.card-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -575,6 +602,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		44E6A46C2DBF73650009500A /* XCLocalSwiftPackageReference "../BGSMM_DevKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../BGSMM_DevKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		44E6A46D2DBF73650009500A /* BGSMM_DevKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BGSMM_DevKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 44E6A42F2DBF730D0009500A /* Project object */;
 }

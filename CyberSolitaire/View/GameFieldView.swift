@@ -1,5 +1,5 @@
 //
-//  CardGroundView.swift
+//  GameFieldView.swift
 //  CyberSolitaire
 //
 //  Created by 윤범태 on 4/28/25.
@@ -28,7 +28,6 @@ struct GameFieldView: View {
             x: dragStartingPoint.x + dragOffset.width - 50,
             y: dragOffset.height
           )
-          .frame(width: 100, height: 150)
           .zIndex(1000) // 무조건 최상단
       }
       
@@ -125,6 +124,7 @@ extension GameFieldView {
           cards.append(dragged)
           deck.removeAll { $0 == dragged }
         }
+        
         draggingCard = nil
         dragOffset = .zero
       }
@@ -142,7 +142,8 @@ extension GameFieldView {
         )
       }
     }
-    cards = newCards.shuffled()
+    cards = newCards
+      // .shuffled()
     deck = []
     draggingCard = nil
     dragOffset = .zero

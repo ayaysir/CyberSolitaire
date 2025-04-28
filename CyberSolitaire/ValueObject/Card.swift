@@ -1,7 +1,17 @@
+//
+//  Card.swift
+//  CyberSolitaire
+//
+//  Created by 윤범태 on 4/28/25.
+//
+
+import Foundation
+
 struct Card: Equatable {
   let suit: Suit
   let rank: Int
-  var isFrontSide = false
+  // var isFrontSide = false
+  // var displayMode: DisplayMode = .frontBig
   
   /// 같은 색인지 확인
   func isSameColor(as other: Card) -> Bool {
@@ -13,6 +23,7 @@ struct Card: Equatable {
     !isSameColor(as: lowerCard) && self.rank + 1 == lowerCard.rank
   }
   
+  /// 편의 숫자:
   var value: Int {
     return suit.startNumber + rank
   }
@@ -62,5 +73,11 @@ extension Card {
   enum Color {
     case red
     case black
+  }
+  
+  enum DisplayMode {
+    case fullFront
+    case partialFront
+    case back
   }
 }
