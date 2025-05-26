@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Card: Equatable {
+struct Card: Codable, Equatable {
   let suit: Suit
   let rank: Int
   // var isFrontSide = false
@@ -17,12 +17,7 @@ struct Card: Equatable {
   func isSameColor(as other: Card) -> Bool {
     suit.color == other.suit.color
   }
-  
-  /// 클론다이크 규칙: 다른 색이고, 숫자가 1 작아야 쌓을 수 있다
-  func canStack(onto lowerCard: Card) -> Bool {
-    !isSameColor(as: lowerCard) && self.rank + 1 == lowerCard.rank
-  }
-  
+
   /// 편의 숫자:
   var value: Int {
     return suit.startNumber + rank
@@ -41,7 +36,7 @@ struct Card: Equatable {
 
 extension Card {
   /// 카드 종류: ♥ 하트 ♦ 다이아몬드(빨간색) / ♣ 클럽 ♠ 스페이드 (검은색)
-  enum Suit: Int {
+  enum Suit: Int, Codable {
     case heart = 0
     case diamond
     case club

@@ -16,7 +16,8 @@ struct GameFieldSceneView: View {
     VStack {
       SpriteView(scene: scene)
         .onAppear(perform: setupCards)
-        .frame(width: 500, height: 500)
+        .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+        .ignoresSafeArea()
       Spacer()
     }
   }
@@ -37,16 +38,28 @@ extension GameFieldSceneView: HasScene {
   var scene: SKScene {
     let scene = SKScene()
     scene.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-    scene.size = CGSize(width: 500, height: 500)
+    scene.size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
     setupBackground(scene: scene)
     
     let deckAreaNode = SKShapeNode(rect: CGRect(x: 0, y: 0, width: 100, height: 150))
     deckAreaNode.position = CGPoint(x: -160, y: -200)
     deckAreaNode.fillColor = .white.withAlphaComponent(0.5)
     // frame은 부모 뷰 기준 위치와 크기, bounds는 자기 자신 기준 내부 좌표계와 크기입니다.
-    cardHandler.dropZone = deckAreaNode.frame
-    cardHandler.viewModel = viewModel
     scene.addChild(deckAreaNode)
+    
+    // cardHandler.dropZone = deckAreaNode.frame
+    cardHandler.viewModel = viewModel
+    
+    // 4 right-upper decks
+    for i in 0..<4 {
+      let deckAreaNode = SKShapeNode(rect: CGRect(x: 0, y: 0, width: 52, height: 52 * 1.5))
+      deckAreaNode.position = CGPoint(x: -80 + 65*i, y: 280)
+      deckAreaNode.fillColor = .white.withAlphaComponent(0.5)
+      DispatchQueue.main.async {
+        cardHandler.viewModel?.decks[i].dropZone = deckAreaNode.frame
+      }
+      scene.addChild(deckAreaNode)
+    }
     
     // MARK: - CardNodes Setup
     for i in viewModel.cards.indices {
