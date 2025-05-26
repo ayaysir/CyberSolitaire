@@ -11,7 +11,7 @@ struct Card: Codable, Equatable {
   let suit: Suit
   let rank: Int
   // var isFrontSide = false
-  // var displayMode: DisplayMode = .frontBig
+  var displayMode: DisplayMode = .fullFront
   
   /// 같은 색인지 확인
   func isSameColor(as other: Card) -> Bool {
@@ -36,7 +36,7 @@ struct Card: Codable, Equatable {
 
 extension Card {
   /// 카드 종류: ♥ 하트 ♦ 다이아몬드(빨간색) / ♣ 클럽 ♠ 스페이드 (검은색)
-  enum Suit: Int, Codable {
+  enum Suit: Int, Codable, CaseIterable {
     case heart = 0
     case diamond
     case club
@@ -70,7 +70,7 @@ extension Card {
     case black
   }
   
-  enum DisplayMode {
+  enum DisplayMode: Codable {
     case fullFront
     case partialFront
     case back

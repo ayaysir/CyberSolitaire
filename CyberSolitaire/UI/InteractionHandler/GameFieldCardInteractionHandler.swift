@@ -10,6 +10,7 @@ import SpriteKit
 class GameFieldCardInteractionHandler: CardNodeDelegate {
   // var deckDropZones: [CGRect] = []
   var viewModel: GameFieldSceneViewModel?
+  private var zPos = 2
   
   init() {}
   
@@ -24,26 +25,50 @@ class GameFieldCardInteractionHandler: CardNodeDelegate {
       return
     }
     
-    if let index = viewModel.deckIndex(containing: touchPoint),
-       viewModel.canPlaceCard(card, in: index) {
-      viewModel.placeCard(card, inDeckAt: index)
-      viewModel.removeFromMainCards(card)
+    if let stackIndex = viewModel.tableauStacksIndex(containing: touchPoint) {
+      // print(stackIndex, viewModel.tableauStacks[stackIndex])
+      guard let beforeStackIndex = viewModel.tableauStacksIndex(containingCard: card) else {
+        print("beforeStackIndex is nil")
+        returnHandler()
+        return
+      }
+      guard let currentIndexInStack = viewModel.tableauStacks[beforeStackIndex].cards.firstIndex(where: { card.value == $0.value }) else {
+        print("currentIndexInStack is nil")
+        returnHandler()
+        return
+      }
       
-      if let postion = viewModel.deckLocation(inDeckAt: index) {
+      if viewModel.tableauStacks[stackIndex].canStack(card) {
+        viewModel.tableauStacks[stackIndex].addCards([card])
+        viewModel.tableauStacks[beforeStackIndex].removeCards(exactly: currentIndexInStack)
+        
+        cardNode.zPosition = CGFloat(zPos)
+        zPos += 1
+        if let position = viewModel.tableauStackLocation(in: stackIndex) {
+          cardNode.position = position
+        }
+      } else {
+        returnHandler()
+      }
+    }
+    
+    else if let stackIndex = viewModel.foundationStackIndex(containing: touchPoint),
+       viewModel.canPlaceCard(card, in: stackIndex) {
+      viewModel.placeCard(card, in: stackIndex)
+      viewModel.removeFromMainCards(card)
+    
+      if let postion = viewModel.foundationStackLocation(in: stackIndex) {
         cardNode.position = postion
       }
     }
-    else if let index = viewModel.deckIndex(containingCard: card) {
+    
+    else if let index = viewModel.foundationStackIndex(containingCard: card) {
       // TODO: - 삭제하고, 스택으로 돌려보냄
-      viewModel.remove(card: card, fromDeckAt: index)
+      viewModel.remove(card: card, from: index)
     }
     
-    // 예시: y > 0 영역이 드롭 존이라고 가정
-    else if -250...250 ~= touchPoint.y {
-      // 유효한 드롭 - 현재 위치 유지
-      print("카드가 기본 드롭 존에 놓였습니다: \(card.rankString) \(card.suit.symbol)")
-      returnHandler()
-    } else {
+    
+    else {
       // 무효한 드롭 - 원래 위치로 복귀
       returnHandler()
     }
