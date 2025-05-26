@@ -33,6 +33,10 @@ class GameFieldCardInteractionHandler: CardNodeDelegate {
         cardNode.position = postion
       }
     }
+    else if let index = viewModel.deckIndex(containingCard: card) {
+      // TODO: - 삭제하고, 스택으로 돌려보냄
+      viewModel.remove(card: card, fromDeckAt: index)
+    }
     
     // 예시: y > 0 영역이 드롭 존이라고 가정
     else if -250...250 ~= touchPoint.y {

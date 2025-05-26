@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SpriteKit
+import BGSMM_DevKit
 
 class CardNode: SKSpriteNode {
   var card: Card
@@ -42,23 +43,59 @@ class CardNode: SKSpriteNode {
   }
   
   func setupUI() {
-    let background = SKShapeNode(rectOf: self.size, cornerRadius: 8)
-    background.fillColor = displayMode != .back ? .white : .gray
-    background.strokeColor = .black
-    background.zPosition = 0
-    addChild(background)
+    let cardContainer = SKNode()
+    
+    switch card.suit {
+    case .heart, .diamond:
+      let gradientNode = GradientNodeFactory.makeNoisyGradientNode(
+        size: self.size,
+        cornerRadius: 12,
+        colors: [.black, .red],
+        angleDegree: 135
+      )
+      gradientNode.position = CGPoint(x: 0, y: 0)
+      cardContainer.addChild(gradientNode)
+    case .club, .spade:
+      let gradientNode = GradientNodeFactory.makeNoisyGradientNode(
+        size: self.size,
+        cornerRadius: 7,
+        colors: [
+          UIColor(hex: "#8F56ED")!,
+          UIColor(hex: "#776BDF")!,
+          UIColor(hex: "#6480E1")!,
+          UIColor(hex: "#6480E1")!,
+          UIColor(hex: "#776BDF")!,
+          UIColor(hex: "#8F56ED")!,
+        ],
+        angleDegree: 45,
+        locations: [0.0, 0.1, 0.3, 0.7, 0.9, 1.0]
+      )
+      // 140, 84, 220
+      gradientNode.position = CGPoint(x: 0, y: 0)
+      cardContainer.addChild(gradientNode)
+    }
+    
+    
+    let neonBorder = SKShapeNode(rectOf: size, cornerRadius: 7)
+    neonBorder.strokeColor = .cyan
+    neonBorder.lineWidth = 0.5
+    neonBorder.glowWidth = 1
+    // neonBorder.zPosition = 1
+    cardContainer.addChild(neonBorder)
     
     switch displayMode {
     case .fullFront:
       let label = SKLabelNode(text: "\(card.rankString) \(card.suit.symbol)")
       label.fontSize = 14
-      label.fontColor = card.suit.color == .red ? .red : .black
+      label.fontColor = .white
       label.verticalAlignmentMode = .center
       label.horizontalAlignmentMode = .center
       label.position = CGPoint(x: 0, y: 0)
-      label.zPosition = 1
-      addChild(label)
+      // label.zPosition = 2
+      label.fontName = "SFProText-Medium"
+      cardContainer.addChild(label)
       
+      addChild(cardContainer)
     case .partialFront:
       let label = SKLabelNode(text: "\(card.rankString) \(card.suit.symbol)")
       label.fontSize = 10
