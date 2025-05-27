@@ -64,7 +64,7 @@ extension GameFieldSceneView: HasScene {
       scene.addChild(node)
     }
     
-    // MARK: - CardNodes Setup
+    // MARK: - CardNodes Tableau Setup
     
     for i in viewModel.tableauStacks.indices {
       for j in viewModel.tableauStacks[i].cards.indices {
@@ -84,6 +84,25 @@ extension GameFieldSceneView: HasScene {
         cardNode.delegate = cardHandler
         scene.addChild(cardNode)
       }
+    }
+    
+    // MARK: - Stock Pile setup
+    for i in viewModel.stockStacks.indices {
+      let card = viewModel.stockStacks[i]
+      let displayMode: Card.DisplayMode = i == viewModel.stockStacks.count - 1 ? .fullFront : .back
+      let cardNode = CardNode(
+        card: card,
+        displayMode: displayMode,
+        dropZone: nil
+      )
+      
+      cardNode.position = CGPoint(
+        x: -170 + 2*i,
+        y: 320
+      )
+      
+      cardNode.delegate = cardHandler
+      scene.addChild(cardNode)
     }
     
     return scene

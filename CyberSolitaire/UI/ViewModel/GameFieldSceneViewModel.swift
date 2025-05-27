@@ -11,6 +11,7 @@ final class GameFieldSceneViewModel: ObservableObject {
   @Published var cards: [Card] = []
   @Published var foundationStacks: [FoundationStack] = Array(repeating: .init(), count: 4)
   @Published var tableauStacks: [TableauStack] = Array(repeating: .init(), count: 7)
+  @Published var stockStacks: [Card] = []
 }
 
 extension GameFieldSceneViewModel {
@@ -35,6 +36,9 @@ extension GameFieldSceneViewModel {
       tableauStacks[i] = TableauStack(cards: stackCards, faceUpCount: 1)
       cardIndex += numberOfCards
     }
+    
+    stockStacks = Array(cards[cardIndex...])
+    print("stockStacks", stockStacks)
   }
   
   func tableauStacksIndex(containingCard card: Card) -> Int? {
