@@ -17,7 +17,7 @@ extension GameFieldSceneViewModel {
   
   func setNewCards() {
     cards = Card.Suit.allCases.map { suit in
-      (1...13).map { Card(suit: suit, rank: $0) }
+      (1...13).map { Card(suit: suit, rank: $0, displayMode: .back) }
     }
       .flatMap { $0 }
       .shuffled()

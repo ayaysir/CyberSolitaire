@@ -23,6 +23,7 @@ struct Card: Codable, Equatable {
     return suit.startNumber + rank
   }
   
+  /// A, J, Q, K라면 해당 텍스트를 리턴, 아니면 숫자(String 래핑) 리턴
   var rankString: String {
     switch rank {
     case 1: return "A"
@@ -31,6 +32,11 @@ struct Card: Codable, Equatable {
     case 13: return "K"
     default: return "\(rank)"
     }
+  }
+  
+  /// `"\(value)_\(rank)_\(suit)_\(displayMode)"`
+  var dataDescription: String {
+    "\(value)_\(rank)_\(suit)_\(displayMode)"
   }
 }
 
@@ -60,17 +66,26 @@ extension Card {
       }
     }
     
+    var name: String {
+      switch self {
+      case .heart: "heart"
+      case .diamond: "diamond"
+      case .club: "club"
+      case .spade: "spade"
+      }
+    }
+    
     var startNumber: Int {
       rawValue * 13
     }
   }
   
-  enum Color {
+  enum Color: String {
     case red
     case black
   }
   
-  enum DisplayMode: Codable {
+  enum DisplayMode: String, Codable {
     case fullFront
     case partialFront
     case back

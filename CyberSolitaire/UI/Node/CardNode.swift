@@ -36,6 +36,7 @@ class CardNode: SKSpriteNode {
     }
     
     setupUI()
+    name = card.dataDescription
   }
   
   required init?(coder aDecoder: NSCoder) {
@@ -94,8 +95,6 @@ class CardNode: SKSpriteNode {
       // label.zPosition = 2
       label.fontName = "SFProText-Medium"
       cardContainer.addChild(label)
-      
-      addChild(cardContainer)
     case .partialFront:
       let label = SKLabelNode(text: "\(card.rankString) \(card.suit.symbol)")
       label.fontSize = 10
@@ -107,22 +106,17 @@ class CardNode: SKSpriteNode {
       addChild(label)
       
     case .back:
-      // 패턴 배경
-      let pattern = SKShapeNode(rectOf: CGSize(width: self.size.width - 10, height: self.size.height - 10))
-      pattern.fillColor = .blue
-      pattern.strokeColor = .white
-      pattern.lineWidth = 2
-      pattern.position = CGPoint(x: 0, y: 0)
-      pattern.zPosition = 1
-      addChild(pattern)
-      
-      // 중앙 로고
-      let centerDot = SKShapeNode(circleOfRadius: 8)
-      centerDot.fillColor = .white
-      centerDot.position = CGPoint(x: 0, y: 0)
-      centerDot.zPosition = 2
-      addChild(centerDot)
+      let texture = SKTexture(image: .cardBackCyber1)
+      let pattern = SKSpriteNode(texture: texture)
+      pattern.size = CGSize(
+        width: size.width - 2,
+        height: size.height - 2
+      )
+      pattern.position = .zero
+      cardContainer.addChild(pattern)
     }
+    
+    addChild(cardContainer)
   }
   
   private func returnToOriginalPosition() {
@@ -162,6 +156,10 @@ extension CardNode {
     originalZPosition = zPosition
     zPosition = 100
     
+    delegate?.didClickCard(self, touchPoint: touchLocation) {
+      setupUI()
+    }
+    
     // 드래그 시작 애니메이션 (선택사항)
     let scaleUp = SKAction.scale(to: 1.1, duration: 0.1)
     run(scaleUp)
@@ -190,12 +188,12 @@ extension CardNode {
     run(scaleDown)
     
     // zPosition 원래대로
-    zPosition = if let originalZPosition {
-      originalZPosition
-    } else {
-      1
-    }
-    
+    // zPosition = if let originalZPosition {
+    //   originalZPosition
+    // } else {
+    //   1
+    // }
+
     // 여기서 드롭 존 체크나 원래 위치로 복귀 로직 추가 가능
     delegate?.checkDropZone(self, touchPoint: touch.location(in: parent), returnHandler: returnToOriginalPosition)
   }

@@ -28,6 +28,7 @@ struct TableauStack: Codable {
   ///   - card: 쌓고자 하는 카드(의 가장 윗카드?)
   func canStack(_ card: Card) -> Bool {
     guard let topCard else {
+      print("top card is nil")
       return card.rank == 13 // K일 때만 빈 자리에 올 수 있음
     }
     

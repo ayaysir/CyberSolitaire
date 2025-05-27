@@ -69,13 +69,12 @@ extension GameFieldSceneView: HasScene {
     for i in viewModel.tableauStacks.indices {
       for j in viewModel.tableauStacks[i].cards.indices {
         let card = viewModel.tableauStacks[i].cards[j]
+        let displayMode: Card.DisplayMode = j == viewModel.tableauStacks[i].cards.count - 1 ? .fullFront : .back
         let cardNode = CardNode(
           card: card,
-          displayMode: .fullFront,
+          displayMode: displayMode,
           dropZone: nil
         )
-        // let suitIndex = card.suit.rawValue // (0, 1, 2, 3)
-        // let cardInSuit = card.rank
         
         cardNode.position = CGPoint(
           x: -170 + 55 * i,
@@ -86,25 +85,6 @@ extension GameFieldSceneView: HasScene {
         scene.addChild(cardNode)
       }
     }
-    
-    // for i in viewModel.cards.indices {
-    //   let cardNode = CardNode(
-    //     card: viewModel.cards[i],
-    //     displayMode: .fullFront,
-    //     dropZone: deckAreaNode.frame
-    //   )
-    //   
-    //   let suitIndex = i / 13  // 어떤 suit인지 (0, 1, 2, 3)
-    //   let cardInSuit = i % 13  // suit 내에서 몇 번째 카드인지 (0~12)
-    //   
-    //   cardNode.position = CGPoint(
-    //     x: -170 + 27 * cardInSuit,
-    //     y: 200 - 50 * suitIndex
-    //   )
-    //   
-    //   cardNode.delegate = cardHandler
-    //   scene.addChild(cardNode)
-    // }
     
     return scene
   }
