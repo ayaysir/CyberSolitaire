@@ -10,7 +10,6 @@ import SpriteKit
 
 struct GameFieldSceneView: View {
   @StateObject var viewModel = GameFieldSceneViewModel()
-  let cardHandler = GameFieldCardInteractionHandler()
   
   var body: some View {
     VStack {
@@ -34,9 +33,6 @@ extension GameFieldSceneView: HasScene {
     scene.anchorPoint = CGPoint(x: 0.5, y: 0.5)
     scene.size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
     setupBackground(scene: scene)
-    
-    // cardHandler.dropZone = deckAreaNode.frame
-    cardHandler.viewModel = viewModel
     
     // 4 right-upper fStacks
     for i in 0..<4 {
@@ -81,7 +77,7 @@ extension GameFieldSceneView: HasScene {
           y: 200 - 50 * j
         )
         
-        cardNode.delegate = cardHandler
+        cardNode.delegate = viewModel
         scene.addChild(cardNode)
       }
     }
@@ -101,7 +97,7 @@ extension GameFieldSceneView: HasScene {
         y: 320
       )
       
-      cardNode.delegate = cardHandler
+      cardNode.delegate = viewModel
       scene.addChild(cardNode)
     }
     
