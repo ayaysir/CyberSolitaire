@@ -10,7 +10,7 @@ import Foundation
 /*
  TODO:
  
- - 리팩터
+ - ✔️ 리팩터
    - ✔️ 뷰모델 Optional로 굳이 할 필요 없으면 Non-optional로 변경 => 아예 InteractionHandler를 없애고 ViewModel이랑 합침
  - Tableau 에서 여러 카드 스택 한꺼번에 옮기기
    - 예) [~~~][J][10][9] 인 경우 J를 드래그하면 아래 10, 9도 같이 움직이게
@@ -19,117 +19,71 @@ import Foundation
  */
 
 extension GameFieldSceneViewModel: CardNodeDelegate {
+  // MARK: - Delegate methods
+  
+  // 카드가 이동했을 때 카드의 드랍 존(도착지) 액션
   func checkDropZone(
     _ cardNode: CardNode,
     touchPoint: CGPoint,
     returnHandler: (() -> Void)
   ) {
-    let card = cardNode.card
+    // case 1: 카드가 tableau로 옮겨졌을 때
+    if let targetStackIndex = tableauStacksIndex(containing: touchPoint) {
+      // case 1-1: 스톡 파일(왼쪽 상단)에서 테이블로 카드를 옮길 수 있음?
+      if stockStacks.contains(cardNode.card) && tableauStacks[targetStackIndex].canStack(cardNode.card)  {
+        // action: 스톡 파일의 카드를 새로운 스택[stackIndex]으로 옮기고 마지막 stock을 지움
+        stackCardOnTableau(cardNode, stackIndex: targetStackIndex) { [unowned self] in
+          stockStacks.removeLast()
+        }
+        
+        return
+      }
+      // case 1-2: 테이블 스택에서 테이블 스택, 옮길 수 있는 경우
+      if let originStackIndex = isTopCardOnTableauStack(cardNode.card),
+         tableauStacks[targetStackIndex].canStack(cardNode.card) {
+        // action: 이전 테이블 스택에서 새로운 테이블 스택으로 옮기고 이전 스택의 탑 카드를 지움
+        stackCardOnTableau(cardNode, stackIndex: targetStackIndex) { [unowned self] in
+          tableauStacks[originStackIndex].removeTopCard()
+        }
+        
+        return
+      }
+    }
     
-    // 카드가 tableau로 옮겨졌을 때
-    if let stackIndex = tableauStacksIndex(containing: touchPoint) {
-      
-      if stockStacks.contains(card), tableauStacks[stackIndex].canStack(card)  {
-        stackCardOnTableau(cardNode, stackIndex: stackIndex) { [unowned self] in
+    // case 2: 카드가 Foundation으로 옮겨졌을 때
+    if let targetStackIndex = foundationStackIndex(containing: touchPoint),
+       canPlaceCardToFoundationStack(cardNode.card, in: targetStackIndex) {
+      // case 2-1: 스톡 파일(왼쪽 상단)에서 Foundation로 카드를 옮길 수 있음?
+      if stockStacks.contains(cardNode.card) {
+        // action: 스톡 파일의 카드를 파운데이션 스택으로 옮기고 마지막 stock을 지움
+        stackCardOnFoundation(cardNode, stackIndex: targetStackIndex) { [unowned self] in
           stockStacks.removeLast()
         }
         
         return
       }
       
-      // 움직인 카드가 어디 스택에 있었는지에 대한 스택 인덱스
-      guard let beforeStackIndex = tableauStacksIndex(containingCard: card) else {
-        returnHandler()
-        return
-      }
-      // ??: 원래 있던 스택에서 카드는 몇 번째 인덱스에 있는가?
-      guard let currentIndexInStack = tableauStacks[beforeStackIndex].cards.firstIndex(where: { card.value == $0.value }) else {
-        returnHandler()
-        return
-      }
-      // ??: 카드가 탑에 있을 때에만 이동 가능
-      guard tableauStacks[beforeStackIndex].topCard == card else {
-        returnHandler()
-        return
-      }
-      
-      if tableauStacks[stackIndex].canStack(card) {
-        stackCardOnTableau(cardNode, stackIndex: stackIndex) { [unowned self] in
-          tableauStacks[beforeStackIndex].removeTopCard()
-        }
-      } else {
-        returnHandler()
-      }
-    }
-    
-    // 카드가 Foundation으로 옮겨졌을 때
-    else if let stackIndex = foundationStackIndex(containing: touchPoint),
-            canPlaceCard(card, in: stackIndex) {
-      if stockStacks.contains(card) {
-        stackCardOnFoundation(cardNode, stackIndex: stackIndex) { [unowned self] in
-          stockStacks.removeLast()
+      // case 2-2: 테이블 스택에서 파운데이션 스택, 옮길 수 있는 경우
+      if let originStackIndex = isTopCardOnTableauStack(cardNode.card) {
+        // action: 이전 테이블 스택에서 새로운 파운데이션 스택으로 옮기고 이전 스택의 탑 카드를 지움
+        stackCardOnFoundation(cardNode, stackIndex: targetStackIndex) { [unowned self] in
+          tableauStacks[originStackIndex].removeTopCard()
         }
         
         return
       }
-      
-      // TODO: - 한 덩어리: 원래 있던 위치에서 자신이 탑인가?
-      guard let beforeStackIndex = tableauStacksIndex(containingCard: card) else {
-        returnHandler()
-        return
-      }
-      // ??: 카드가 탑에 있을 때에만 이동 가능
-      guard tableauStacks[beforeStackIndex].topCard == card else {
-        returnHandler()
-        return
-      }
-      // =============================== //
-    
-      stackCardOnFoundation(cardNode, stackIndex: stackIndex) { [unowned self] in
-        tableauStacks[beforeStackIndex].cards.removeLast()
-      }
     }
     
-    else if let index = foundationStackIndex(containingCard: card) {
-      // TODO: - 삭제하고, 스택으로 돌려보냄
-      remove(card: card, from: index)
-    }
-    
-    else {
-      // 무효한 드롭 - 원래 위치로 복귀
-      returnHandler()
-    }
+    returnHandler()
+    return
   }
   
-  
+  // 카드를 클릭하기 시작했을 때 액션
   func didClickCard(
     _ cardNode: CardNode,
     touchPoint: CGPoint,
     redrawHandler: () -> Void
   ) {
-    let card = cardNode.card
-    
-    if stockStacks.contains(card) {
-      if cardNode.displayMode == .back {
-        cardNode.displayMode = .fullFront
-        
-        redrawHandler()
-      }
-      return
-    }
-    
-    // TODO: - 한 덩어리: 원래 있던 위치에서 자신이 탑인가?
-    guard let beforeStackIndex = tableauStacksIndex(containingCard: card) else {
-      return
-    }
-    // ??: 카드가 탑에 있을 때에만 이동 가능
-    guard tableauStacks[beforeStackIndex].topCard == card else {
-      // print(viewModel.tableauStacks[beforeStackIndex].topCard, card)
-      return
-    }
-    // =============================== //
-    
-    
     // 임시: 카드 뒤집혔으면 앞면으로
     if cardNode.displayMode == .back {
       cardNode.displayMode = .fullFront
@@ -139,7 +93,25 @@ extension GameFieldSceneViewModel: CardNodeDelegate {
   }
 }
 
+
 extension GameFieldSceneViewModel {
+  // MARK: Utility funcs
+  
+  /// 카드가 움직일 수 있는 탑에 있는 카드라면, 해당 Tableau 스택의 인덱스를 반환. 아니라면 nil
+  func isTopCardOnTableauStack(_ card: Card) -> Int? {
+    guard let index = tableauStacksIndex(containingCard: card),
+          tableauStacks[index].topCard == card
+    else {
+      return nil
+    }
+    
+    return index
+  }
+}
+
+extension GameFieldSceneViewModel {
+  // MARK: - UI adjust funcs
+  
   func stackCardOnTableau(
     _ cardNode: CardNode,
     stackIndex: Int,
@@ -177,4 +149,3 @@ extension GameFieldSceneViewModel {
     }
   }
 }
-

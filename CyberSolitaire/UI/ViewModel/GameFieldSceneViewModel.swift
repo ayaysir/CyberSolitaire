@@ -71,8 +71,8 @@ extension GameFieldSceneViewModel {
     foundationStacks.firstIndex { $0.dropZone?.contains(point) == true }
   }
   
-  /// 카드가 해당  파운데이션 스택에 쌓일 수 있는지 판단 (룰 적용)
-  func canPlaceCard(_ card: Card, in stackIndex: Int) -> Bool {
+  /// 카드가 해당 파운데이션 스택에 쌓일 수 있는지 판단 (룰 적용)
+  func canPlaceCardToFoundationStack(_ card: Card, in stackIndex: Int) -> Bool {
     guard foundationStacks.indices.contains(stackIndex) else { return false }
     guard let topCard = foundationStacks[stackIndex].cards.last else {
       return card.rank == 1
