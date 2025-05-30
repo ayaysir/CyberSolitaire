@@ -35,9 +35,20 @@ struct TableauStack: Codable {
     return !card.isSameColor(as: topCard) && card.rank == topCard.rank - 1
   }
   
-  /// 카드를 뽑아내기 (한 장 또는 여러 장)
+  /// 카드를 인덱스에서부터 뽑아내기 (한 장 또는 여러 장)
   func extractCards(from index: Int) -> [Card] {
     Array(cards.suffix(from: index))
+  }
+  
+  func cardIndex(of card: Card) -> Int? {
+    cards.firstIndex(of: card)
+  }
+  
+  /// cards 배열에서 특정 카드가 뒤에서부터 몇 번째인지 반환 (1부터 시작)
+  /// - Returns: cards.last면 1, 그 앞이면 2, ... 못 찾으면 nil
+  func distanceFromEnd(of card: Card) -> Int? {
+    guard let index = cards.firstIndex(of: card) else { return nil }
+    return cards.count - index
   }
   
   /// 카드 추가
@@ -55,6 +66,13 @@ struct TableauStack: Codable {
     if faceUpCount > cards.count {
       faceUpCount = cards.count
     }
+  }
+  
+  mutating func removeCards(from targetCards: [Card]) {
+    // cards에 targetCards에 있는 카드가 있다면 지우기
+    cards.removeAll { targetCards.contains($0) }
+    // faceup 카운트 조절
+    faceUpCount -= targetCards.count
   }
   
   mutating func removeCards(exactly index: Int) {

@@ -24,9 +24,25 @@ class GameFieldScene: SKScene {
   
   override func didMove(to view: SKView) {
     anchorPoint = CGPoint(x: 0.5, y: 0.5)
-    // size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
     setupBackground()
     
+    setFoundationArea()
+    setTableauDropZone()
+    setTableauCardNodes()
+    setStockCardNodes()
+  }
+  
+  func setupBackground() {
+    let backgroundTexture = SKTexture(image: .cyberpunk1)
+    let backgroundNode = SKSpriteNode(texture: backgroundTexture)
+    backgroundNode.position = .zero
+    backgroundNode.size = size
+    backgroundNode.zPosition = -1
+    
+    addChild(backgroundNode)
+  }
+  
+  func setFoundationArea() {
     // 4 right-upper fStacks
     for i in 0..<4 {
       let fStacksAreaNode = SKShapeNode(rect: CGRect(x: 0, y: 0, width: 50, height: 50 * 1.5))
@@ -37,7 +53,9 @@ class GameFieldScene: SKScene {
       }
       addChild(fStacksAreaNode)
     }
-    
+  }
+  
+  func setTableauDropZone() {
     // MARK: - Tableau Stack Area
     
     for i in viewModel.tableauStacks.indices {
@@ -53,7 +71,9 @@ class GameFieldScene: SKScene {
       
       addChild(node)
     }
-    
+  }
+  
+  func setTableauCardNodes() {
     // MARK: - CardNodes Tableau Setup
     
     for i in viewModel.tableauStacks.indices {
@@ -75,22 +95,11 @@ class GameFieldScene: SKScene {
         addChild(cardNode)
       }
     }
-    
-    setStockCardNodes()
-  }
-  
-  func setupBackground() {
-    let backgroundTexture = SKTexture(image: .cyberpunk1)
-    let backgroundNode = SKSpriteNode(texture: backgroundTexture)
-    backgroundNode.position = .zero
-    backgroundNode.size = size
-    backgroundNode.zPosition = -1
-    
-    addChild(backgroundNode)
   }
   
   func setStockCardNodes() {
     // MARK: - Stock Pile setup
+    
     let stockAreaNode = StockAreaNode()
     stockAreaNode.position = CGPoint(x: -170, y: 320)
     stockAreaNode.delegate = viewModel
@@ -119,6 +128,12 @@ class GameFieldScene: SKScene {
       childNode(withName: card.dataDescription)?.removeFromParent()
     }
   }
+  
+  func cardNodes(cardArray: [Card]) -> [CardNode] {
+    cardArray.compactMap { card in
+      childNode(withName: card.dataDescription) as? CardNode
+    }
+  }
 }
 
 struct GameFieldSceneView: View {
@@ -129,13 +144,21 @@ struct GameFieldSceneView: View {
       SpriteView(
         scene: GameFieldScene(
           viewModel: viewModel,
-          size: CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+          size: CGSize(
+            width: UIScreen.main.bounds.width,
+            height: UIScreen.main.bounds.height - 50
+          )
         )
       )
       .onAppear(perform: setupCards)
-      .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+      .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height - 50)
       .ignoresSafeArea()
       Spacer()
+      HStack {
+        ForEach(viewModel.tableauStacks.indices, id: \.self) { i in
+          Text("\(viewModel.tableauStacks[i].faceUpCount)")
+        }
+      }
     }
   }
   
@@ -144,18 +167,6 @@ struct GameFieldSceneView: View {
     viewModel.setTableauStacks()
   }
 }
-
-// extension GameFieldSceneView: HasScene {
-//   // var scene: SKScene {
-//   //   let scene = SKScene()
-//   //   
-//   //   
-//   //   // stockPile(to: scene)
-//   //   viewModel.stockPile(to: scene)
-//   //   
-//   //   return scene
-//   // }
-// }
 
 #Preview {
   GameFieldSceneView()

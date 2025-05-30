@@ -155,6 +155,8 @@ extension CardNode {
       run(moveRight)
     } dragStartHandler: {
       isDragging = true
+    } multipleDragStartHandler: {
+      
     }
     
     if isDragging {

@@ -19,6 +19,7 @@ protocol CardNodeDelegate: AnyObject {
     touchPoint: CGPoint,
     redrawHandler: VoidCallback,
     animSlideToWasteHandler: VoidCallback,
-    dragStartHandler: VoidCallback
+    dragStartHandler: VoidCallback,
+    multipleDragStartHandler: VoidCallback
   )
 }

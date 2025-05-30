@@ -14,6 +14,8 @@ final class GameFieldSceneViewModel: ObservableObject {
   @Published var stockStacks: [Card] = []
   @Published var wasteStacks: [Card] = []
   
+  var movingCardChunks: [Card]? = nil
+  
   var wasteIndex = 0
 }
 
@@ -21,10 +23,10 @@ extension GameFieldSceneViewModel {
   
   func setNewCards() {
     cards = Card.Suit.allCases.map { suit in
-      (1...13).map { Card(suit: suit, rank: $0, displayMode: .back) }
+      (1...13).map { Card(suit: suit, rank: $0) }
     }
-      .flatMap { $0 }
-      .shuffled()
+    .flatMap { $0 }
+    .shuffled()
   }
   
   func setTableauStacks() {
@@ -58,13 +60,22 @@ extension GameFieldSceneViewModel {
     tableauStacks.firstIndex { $0.dropZone?.contains(point) == true }
   }
   
-  func tableauStackLocation(in stackIndex: Int) -> CGPoint? {
+  func tableauStackLocation(in stackIndex: Int, movingCardsCount: Int = 1) -> CGPoint? {
     guard tableauStacks.indices.contains(stackIndex) else { return nil }
     guard let dropZone = tableauStacks[stackIndex].dropZone else {
       return nil
     }
+    // count 5, 1 = 5
+    // count 5, 2 = 4
+    // return CGPoint(x: dropZone.midX, y: 200 - 50 * CGFloat(tableauStacks[stackIndex].cards.count - 1 - (movingCardsCount - 1) ))
+    return .init(
+      x: dropZone.midX,
+      y: 200 - 50 * CGFloat(tableauStacks[stackIndex].cards.count - 1 - movingCardsCount + 1)
+    )
+  }
+  
+  func removeCardsFromTableau() {
     
-    return CGPoint(x: dropZone.midX, y: 200 - 50 * CGFloat(tableauStacks[stackIndex].cards.count - 1))
   }
 }
 
@@ -143,7 +154,7 @@ extension GameFieldSceneViewModel {
   }
   
   /// 카드가 움직일 수 있는 탑에 있는 카드라면, 해당 Tableau 스택의 인덱스를 반환. 아니라면 nil
-  func isTopCardOnTableauStack(_ card: Card) -> Int? {
+  func tableauIndex(topCardOnTableauStack card: Card) -> Int? {
     guard let index = tableauStacksIndex(containingCard: card),
           tableauStacks[index].topCard == card
     else {
@@ -151,6 +162,10 @@ extension GameFieldSceneViewModel {
     }
     
     return index
+  }
+  
+  func isTopCardOnTableauStack(_ card: Card) -> Bool {
+    tableauIndex(topCardOnTableauStack: card) != nil
   }
 }
 

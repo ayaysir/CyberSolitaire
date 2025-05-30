@@ -11,7 +11,7 @@ struct Card: Codable, Equatable {
   let suit: Suit
   let rank: Int
   // var isFrontSide = false
-  var displayMode: DisplayMode = .fullFront
+  // var displayMode: DisplayMode = .fullFront
   
   /// 같은 색인지 확인
   func isSameColor(as other: Card) -> Bool {
@@ -36,7 +36,7 @@ struct Card: Codable, Equatable {
   
   /// `"\(value)_\(rank)_\(suit)_\(displayMode)"`
   var dataDescription: String {
-    "\(value)_\(rank)_\(suit)_\(displayMode)"
+    "\(value)_\(rank)_\(suit)"
   }
 }
 
