@@ -12,6 +12,9 @@ final class GameFieldSceneViewModel: ObservableObject {
   @Published var foundationStacks: [FoundationStack] = Array(repeating: .init(), count: 4)
   @Published var tableauStacks: [TableauStack] = Array(repeating: .init(), count: 7)
   @Published var stockStacks: [Card] = []
+  @Published var wasteStacks: [Card] = []
+  
+  var wasteIndex = 0
 }
 
 extension GameFieldSceneViewModel {
@@ -38,7 +41,7 @@ extension GameFieldSceneViewModel {
     }
     
     stockStacks = Array(cards[cardIndex...])
-    print("stockStacks", stockStacks)
+    print("init stockStacks:", stockStacks.count)
   }
   
   func tableauStacksIndex(containingCard card: Card) -> Int? {
@@ -128,4 +131,29 @@ extension GameFieldSceneViewModel {
       foundationStacks[stackIndex].cards.remove(at: cardIndex)
     }
   }
+}
+
+extension GameFieldSceneViewModel {
+  func isCardInStockStacks(_ card: Card) -> Bool {
+    stockStacks.contains(card)
+  }
+  
+  func removeCardFromStockStacks(_ card: Card) {
+    stockStacks.removeAll { $0 == card }
+  }
+  
+  /// 카드가 움직일 수 있는 탑에 있는 카드라면, 해당 Tableau 스택의 인덱스를 반환. 아니라면 nil
+  func isTopCardOnTableauStack(_ card: Card) -> Int? {
+    guard let index = tableauStacksIndex(containingCard: card),
+          tableauStacks[index].topCard == card
+    else {
+      return nil
+    }
+    
+    return index
+  }
+}
+
+extension GameFieldSceneViewModel {
+
 }

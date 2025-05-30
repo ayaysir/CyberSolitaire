@@ -11,12 +11,14 @@ protocol CardNodeDelegate: AnyObject {
   func checkDropZone(
     _ cardNode: CardNode,
     touchPoint: CGPoint,
-    returnHandler: VoidCallback
+    backToOriginHandler: VoidCallback
   )
   
   func didClickCard(
     _ cardNode: CardNode,
     touchPoint: CGPoint,
-    redrawHandler: VoidCallback
+    redrawHandler: VoidCallback,
+    animSlideToWasteHandler: VoidCallback,
+    dragStartHandler: VoidCallback
   )
 }

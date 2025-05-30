@@ -8,41 +8,34 @@
 import SwiftUI
 import SpriteKit
 
-struct GameFieldSceneView: View {
-  @StateObject var viewModel = GameFieldSceneViewModel()
+class GameFieldScene: SKScene {
+  // 💡: Scene을 SwiftUI View 안에 두는것보다 외부로 빼는것이 속도면에서 훨씬 빠름
   
-  var body: some View {
-    VStack {
-      SpriteView(scene: scene)
-        .onAppear(perform: setupCards)
-        .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
-        .ignoresSafeArea()
-      Spacer()
-    }
+  var viewModel: GameFieldSceneViewModel
+  
+  init(viewModel: GameFieldSceneViewModel, size: CGSize) {
+    self.viewModel = viewModel
+    super.init(size: size)
   }
   
-  private func setupCards() {
-    viewModel.setNewCards()
-    viewModel.setTableauStacks()
+  required init?(coder aDecoder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
   }
-}
-
-extension GameFieldSceneView: HasScene {
-  var scene: SKScene {
-    let scene = SKScene()
-    scene.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-    scene.size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
-    setupBackground(scene: scene)
+  
+  override func didMove(to view: SKView) {
+    anchorPoint = CGPoint(x: 0.5, y: 0.5)
+    // size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+    setupBackground()
     
     // 4 right-upper fStacks
     for i in 0..<4 {
-      let fStacksAreaNode = SKShapeNode(rect: CGRect(x: 0, y: 0, width: 52, height: 52 * 1.5))
-      fStacksAreaNode.position = CGPoint(x: -80 + 65*i, y: 280)
+      let fStacksAreaNode = SKShapeNode(rect: CGRect(x: 0, y: 0, width: 50, height: 50 * 1.5))
+      fStacksAreaNode.position = CGPoint(x: -40 + 55*i, y: 280)
       fStacksAreaNode.fillColor = .white.withAlphaComponent(0.5)
       DispatchQueue.main.async {
-        viewModel.foundationStacks[i].dropZone = fStacksAreaNode.frame
+        self.viewModel.foundationStacks[i].dropZone = fStacksAreaNode.frame
       }
-      scene.addChild(fStacksAreaNode)
+      addChild(fStacksAreaNode)
     }
     
     // MARK: - Tableau Stack Area
@@ -55,9 +48,10 @@ extension GameFieldSceneView: HasScene {
         y: 0
       )
       DispatchQueue.main.async {
-        viewModel.tableauStacks[i].dropZone = node.frame
+        self.viewModel.tableauStacks[i].dropZone = node.frame
       }
-      scene.addChild(node)
+      
+      addChild(node)
     }
     
     // MARK: - CardNodes Tableau Setup
@@ -78,42 +72,90 @@ extension GameFieldSceneView: HasScene {
         )
         
         cardNode.delegate = viewModel
-        scene.addChild(cardNode)
+        addChild(cardNode)
       }
     }
     
-    // MARK: - Stock Pile setup
-    for i in viewModel.stockStacks.indices {
-      let card = viewModel.stockStacks[i]
-      let displayMode: Card.DisplayMode = i == viewModel.stockStacks.count - 1 ? .fullFront : .back
-      let cardNode = CardNode(
-        card: card,
-        displayMode: displayMode,
-        dropZone: nil
-      )
-      
-      cardNode.position = CGPoint(
-        x: -170 + 2*i,
-        y: 320
-      )
-      
-      cardNode.delegate = viewModel
-      scene.addChild(cardNode)
-    }
-    
-    return scene
+    setStockCardNodes()
   }
   
-  func setupBackground(scene: SKScene) {
+  func setupBackground() {
     let backgroundTexture = SKTexture(image: .cyberpunk1)
     let backgroundNode = SKSpriteNode(texture: backgroundTexture)
     backgroundNode.position = .zero
-    backgroundNode.size = scene.size
+    backgroundNode.size = size
     backgroundNode.zPosition = -1
     
-    scene.addChild(backgroundNode)
+    addChild(backgroundNode)
+  }
+  
+  func setStockCardNodes() {
+    // MARK: - Stock Pile setup
+    let stockAreaNode = StockAreaNode()
+    stockAreaNode.position = CGPoint(x: -170, y: 320)
+    stockAreaNode.delegate = viewModel
+    addChild(stockAreaNode)
+    
+    for i in viewModel.stockStacks.indices {
+      let card = viewModel.stockStacks[i]
+      let cardNode = CardNode(
+        card: card,
+        displayMode: .back,
+        dropZone: nil
+      )
+      cardNode.name = card.dataDescription
+      cardNode.position = CGPoint(
+        x: -170 + 0.5 * CGFloat(i),
+        y: 320 - 0.2 * CGFloat(i)
+      )
+      
+      cardNode.delegate = viewModel
+      addChild(cardNode)
+    }
+  }
+  
+  func removeStockCardNodes() {
+    viewModel.stockStacks.forEach { card in
+      childNode(withName: card.dataDescription)?.removeFromParent()
+    }
   }
 }
+
+struct GameFieldSceneView: View {
+  @StateObject var viewModel = GameFieldSceneViewModel()
+  
+  var body: some View {
+    VStack {
+      SpriteView(
+        scene: GameFieldScene(
+          viewModel: viewModel,
+          size: CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+        )
+      )
+      .onAppear(perform: setupCards)
+      .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+      .ignoresSafeArea()
+      Spacer()
+    }
+  }
+  
+  private func setupCards() {
+    viewModel.setNewCards()
+    viewModel.setTableauStacks()
+  }
+}
+
+// extension GameFieldSceneView: HasScene {
+//   // var scene: SKScene {
+//   //   let scene = SKScene()
+//   //   
+//   //   
+//   //   // stockPile(to: scene)
+//   //   viewModel.stockPile(to: scene)
+//   //   
+//   //   return scene
+//   // }
+// }
 
 #Preview {
   GameFieldSceneView()

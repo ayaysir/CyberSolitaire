@@ -19,9 +19,10 @@ class CardNode: SKSpriteNode {
   weak var delegate: CardNodeDelegate?
   
   // Drag 프로퍼티
+  /// true인 경우 touchMoved, Ended 이벤트 지속, false인 경우 began으로 종료
   private var isDragging = false
   private var dragOffset = CGPoint.zero
-  private var originalPosition = CGPoint.zero
+  private var originalDragPosition = CGPoint.zero
   
   init(card: Card, displayMode: Card.DisplayMode, dropZone: CGRect? = nil) {
     self.card = card
@@ -122,7 +123,7 @@ class CardNode: SKSpriteNode {
   private func returnToOriginalPosition() {
     isDragging = false
     
-    let moveBack = SKAction.move(to: originalPosition, duration: 0.3)
+    let moveBack = SKAction.move(to: originalDragPosition, duration: 0.3)
     let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
     let group = SKAction.group([moveBack, scaleDown])
     
@@ -145,24 +146,32 @@ extension CardNode {
     
     let touchLocation = touch.location(in: parent)
     
-    isDragging = true
-    originalPosition = position
-    dragOffset = CGPoint(
-      x: touchLocation.x - position.x,
-      y: touchLocation.y - position.y
-    )
-    
-    // 드래그 시작 시 카드를 맨 앞으로
-    originalZPosition = zPosition
-    zPosition = 100
-    
     delegate?.didClickCard(self, touchPoint: touchLocation) {
       setupUI()
+    } animSlideToWasteHandler: {
+      isDragging = false
+      // 옆으로 이동하는 애니메이션
+      let moveRight = SKAction.moveBy(x: width + 20, y: 0, duration: 0.25)
+      run(moveRight)
+    } dragStartHandler: {
+      isDragging = true
     }
     
-    // 드래그 시작 애니메이션 (선택사항)
-    let scaleUp = SKAction.scale(to: 1.1, duration: 0.1)
-    run(scaleUp)
+    if isDragging {
+      originalDragPosition = position
+      dragOffset = CGPoint(
+        x: touchLocation.x - position.x,
+        y: touchLocation.y - position.y
+      )
+      
+      // 드래그 시작 시 카드를 맨 앞으로
+      originalZPosition = zPosition
+      zPosition = 100
+      
+      // 드래그 시작 애니메이션 (선택사항)
+      let scaleUp = SKAction.scale(to: 1.1, duration: 0.1)
+      run(scaleUp)
+    }
   }
   
   override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -188,14 +197,10 @@ extension CardNode {
     run(scaleDown)
     
     // zPosition 원래대로
-    // zPosition = if let originalZPosition {
-    //   originalZPosition
-    // } else {
-    //   1
-    // }
+    zPosition = originalZPosition ?? 0
 
     // 여기서 드롭 존 체크나 원래 위치로 복귀 로직 추가 가능
-    delegate?.checkDropZone(self, touchPoint: touch.location(in: parent), returnHandler: returnToOriginalPosition)
+    delegate?.checkDropZone(self, touchPoint: touch.location(in: parent), backToOriginHandler: returnToOriginalPosition)
   }
 }
 

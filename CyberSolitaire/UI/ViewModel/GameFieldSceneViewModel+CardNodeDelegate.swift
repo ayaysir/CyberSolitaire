@@ -25,15 +25,19 @@ extension GameFieldSceneViewModel: CardNodeDelegate {
   func checkDropZone(
     _ cardNode: CardNode,
     touchPoint: CGPoint,
-    returnHandler: (() -> Void)
+    backToOriginHandler: VoidCallback
   ) {
     // case 1: 카드가 tableau로 옮겨졌을 때
     if let targetStackIndex = tableauStacksIndex(containing: touchPoint) {
       // case 1-1: 스톡 파일(왼쪽 상단)에서 테이블로 카드를 옮길 수 있음?
-      if stockStacks.contains(cardNode.card) && tableauStacks[targetStackIndex].canStack(cardNode.card)  {
-        // action: 스톡 파일의 카드를 새로운 스택[stackIndex]으로 옮기고 마지막 stock을 지움
-        stackCardOnTableau(cardNode, stackIndex: targetStackIndex) { [unowned self] in
-          stockStacks.removeLast()
+      if stockStacks.contains(cardNode.card) {
+        if tableauStacks[targetStackIndex].canStack(cardNode.card) {
+          // action: 스톡 파일의 카드를 새로운 스택[stackIndex]으로 옮기고 마지막 stock을 지움
+          stackCardOnTableau(cardNode, stackIndex: targetStackIndex) { [unowned self] in
+            removeCardFromStockStacks(cardNode.card)
+          }
+        } else {
+          backToOriginHandler()
         }
         
         return
@@ -55,9 +59,9 @@ extension GameFieldSceneViewModel: CardNodeDelegate {
        canPlaceCardToFoundationStack(cardNode.card, in: targetStackIndex) {
       // case 2-1: 스톡 파일(왼쪽 상단)에서 Foundation로 카드를 옮길 수 있음?
       if stockStacks.contains(cardNode.card) {
-        // action: 스톡 파일의 카드를 파운데이션 스택으로 옮기고 마지막 stock을 지움
+        // action: 스톡 파일의 카드를 파운데이션 스택으로 옮기고 해당 카드를 stocks에서 지움
         stackCardOnFoundation(cardNode, stackIndex: targetStackIndex) { [unowned self] in
-          stockStacks.removeLast()
+          removeCardFromStockStacks(cardNode.card)
         }
         
         return
@@ -74,7 +78,11 @@ extension GameFieldSceneViewModel: CardNodeDelegate {
       }
     }
     
-    returnHandler()
+    if isCardInStockStacks(cardNode.card) {
+      return
+    }
+    
+    backToOriginHandler()
     return
   }
   
@@ -82,30 +90,32 @@ extension GameFieldSceneViewModel: CardNodeDelegate {
   func didClickCard(
     _ cardNode: CardNode,
     touchPoint: CGPoint,
-    redrawHandler: () -> Void
+    redrawHandler: VoidCallback,
+    animSlideToWasteHandler: VoidCallback,
+    dragStartHandler: VoidCallback
   ) {
-    // 임시: 카드 뒤집혔으면 앞면으로
-    if cardNode.displayMode == .back {
+    
+    if isCardInStockStacks(cardNode.card) && cardNode.displayMode == .back {
       cardNode.displayMode = .fullFront
-      
+      wasteIndex += 1
+      cardNode.zPosition = CGFloat(wasteIndex)
       redrawHandler()
-    }
-  }
-}
-
-
-extension GameFieldSceneViewModel {
-  // MARK: Utility funcs
-  
-  /// 카드가 움직일 수 있는 탑에 있는 카드라면, 해당 Tableau 스택의 인덱스를 반환. 아니라면 nil
-  func isTopCardOnTableauStack(_ card: Card) -> Int? {
-    guard let index = tableauStacksIndex(containingCard: card),
-          tableauStacks[index].topCard == card
-    else {
-      return nil
+      animSlideToWasteHandler()
+      return
     }
     
-    return index
+    // // 임시: 카드 뒤집혔으면 앞면으로
+    // if cardNode.displayMode == .back {
+    //   cardNode.displayMode = .fullFront
+    //   redrawHandler()
+    // }
+    
+    if (isTopCardOnTableauStack(cardNode.card) != nil) && cardNode.displayMode == .back {
+      cardNode.displayMode = .fullFront
+      redrawHandler()
+    }
+    
+    dragStartHandler()
   }
 }
 
