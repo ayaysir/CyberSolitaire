@@ -11,7 +11,9 @@ protocol CardNodeDelegate: AnyObject {
   func checkDropZone(
     _ cardNode: CardNode,
     touchPoint: CGPoint,
-    backToOriginHandler: VoidCallback
+    backToOriginHandler: VoidCallback,
+    successDropHandler: ((_ zPos: Int?) -> Void),
+    cardGroupMoveCancelledHandler: VoidCallback
   )
   
   func didClickCard(
@@ -21,5 +23,16 @@ protocol CardNodeDelegate: AnyObject {
     animSlideToWasteHandler: VoidCallback,
     dragStartHandler: VoidCallback,
     multipleDragStartHandler: VoidCallback
+  )
+  
+  func didMoveCard(
+    _ cardNode: CardNode,
+    touchPoint: CGPoint,
+    multipleMoveHandler: VoidCallback
+  )
+  
+  func didCardGroupMoveCancelled(
+    _ cardNode: CardNode,
+    touchPoint: CGPoint
   )
 }

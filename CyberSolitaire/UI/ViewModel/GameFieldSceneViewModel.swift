@@ -14,7 +14,9 @@ final class GameFieldSceneViewModel: ObservableObject {
   @Published var stockStacks: [Card] = []
   @Published var wasteStacks: [Card] = []
   
-  var movingCardChunks: [Card]? = nil
+  @Published var gameCount = 0
+  
+  // var movingCardChunks: [Card]? = nil
   
   var wasteIndex = 0
 }
@@ -22,16 +24,20 @@ final class GameFieldSceneViewModel: ObservableObject {
 extension GameFieldSceneViewModel {
   
   func setNewCards() {
+    cards = []
+    foundationStacks = Array(repeating: .init(), count: 4)
+    tableauStacks = Array(repeating: .init(), count: 7)
+    stockStacks = []
+    wasteStacks = []
+    
     cards = Card.Suit.allCases.map { suit in
       (1...13).map { Card(suit: suit, rank: $0) }
     }
     .flatMap { $0 }
     .shuffled()
-  }
-  
-  func setTableauStacks() {
+    
     // 카드가 충분한지 확인
-    guard cards.count >= 28 else { return }
+    // guard cards.count >= 28 else { return }
     
     var cardIndex = 0
     
@@ -45,6 +51,10 @@ extension GameFieldSceneViewModel {
     stockStacks = Array(cards[cardIndex...])
     print("init stockStacks:", stockStacks.count)
   }
+  
+  // func setTableauStacks() {
+ 
+  // }
   
   func tableauStacksIndex(containingCard card: Card) -> Int? {
     for i in tableauStacks.indices {
@@ -70,7 +80,8 @@ extension GameFieldSceneViewModel {
     // return CGPoint(x: dropZone.midX, y: 200 - 50 * CGFloat(tableauStacks[stackIndex].cards.count - 1 - (movingCardsCount - 1) ))
     return .init(
       x: dropZone.midX,
-      y: 200 - 50 * CGFloat(tableauStacks[stackIndex].cards.count - 1 - movingCardsCount + 1)
+      // TODO: - movingCardsCounts 기준 통일하기
+      y: 200 - 50 * CGFloat(tableauStacks[stackIndex].cards.count - movingCardsCount + 1)
     )
   }
   
@@ -149,6 +160,10 @@ extension GameFieldSceneViewModel {
     stockStacks.contains(card)
   }
   
+  func isTopCardInStock(_ card: Card) -> Bool {
+    stockStacks.last == card
+  }
+  
   func removeCardFromStockStacks(_ card: Card) {
     stockStacks.removeAll { $0 == card }
   }
@@ -170,5 +185,54 @@ extension GameFieldSceneViewModel {
 }
 
 extension GameFieldSceneViewModel {
-
+  func addCardFromStockToWaste() {
+    guard stockStacks.count > 0 else {
+      return
+    }
+    
+    let card = stockStacks.removeLast()
+    wasteStacks.append(card)
+  }
+  
+  func removeTopCardFromWasteStack() {
+    guard wasteStacks.count > 0 else {
+      return
+    }
+    
+    wasteStacks.removeLast()
+  }
+  
+  func setStockFromRemainWaste() {
+    stockStacks = wasteStacks.reversed()
+    wasteStacks = []
+  }
+  
+  func isCardInWasteStacks(_ card: Card) -> Bool {
+    wasteStacks.contains(card)
+  }
+  
+  // TODO: - isAvailableCardInWaste 만들기: 3개 카드 대비
+  func isTopCardInWaste(_ card: Card) -> Bool {
+    wasteStacks.last == card
+  }
+  
+  func extractCards(_ card: Card, fromTableauStackIndex tableauIndex: Int) -> [Card]? {
+    // RO: Read Only
+    let tableauStackRO = tableauStacks[tableauIndex]
+    let faceUpCount = tableauStackRO.faceUpCount
+    
+    guard tableauStackRO.cards.contains(card),
+          let cardIndex = tableauStackRO.cardIndex(of: card),
+          let distanceFromEnd = tableauStackRO.distanceFromEnd(of: card) else {
+      print("tableauStackRO에 카드가 없습니다.")
+      return nil
+    }
+    
+    guard faceUpCount >= distanceFromEnd else {
+      print("faceUpCount >= distanceFromEnd", faceUpCount, distanceFromEnd)
+      return nil
+    }
+    
+    return tableauStackRO.extractCards(from: cardIndex)
+  }
 }

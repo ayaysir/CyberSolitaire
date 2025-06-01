@@ -13,7 +13,8 @@ extension GameFieldSceneViewModel: StockAreaNodeDelegate {
       return
     }
     print("stocks:", stockStacks.count)
-    scene.removeStockCardNodes()
+    scene.removeWasteCardNodes()
+    setStockFromRemainWaste()
     scene.setStockCardNodes()
   }
 }

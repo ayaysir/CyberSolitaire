@@ -14,13 +14,17 @@ class CardNode: SKSpriteNode {
   var width: CGFloat = 50
   var displayMode: Card.DisplayMode
   var dropZone: CGRect?
-  var originalZPosition: CGFloat?
+  var isGroupLeader: Bool = false
+  private var originalZPosition: CGFloat?
   
   weak var delegate: CardNodeDelegate?
   
   // Drag 프로퍼티
   /// true인 경우 touchMoved, Ended 이벤트 지속, false인 경우 began으로 종료
   private var isDragging = false
+  private var touchStartPoint: CGPoint?
+  private let dragThreshold: CGFloat = 8
+  private var isActuallyMoved = false
   private var dragOffset = CGPoint.zero
   private var originalDragPosition = CGPoint.zero
   
@@ -45,7 +49,10 @@ class CardNode: SKSpriteNode {
   }
   
   func setupUI() {
+    childNode(withName: "cardContainer")?.removeFromParent()
+    
     let cardContainer = SKNode()
+    cardContainer.name = "cardContainer"
     
     switch card.suit {
     case .heart, .diamond:
@@ -76,7 +83,6 @@ class CardNode: SKSpriteNode {
       gradientNode.position = CGPoint(x: 0, y: 0)
       cardContainer.addChild(gradientNode)
     }
-    
     
     let neonBorder = SKShapeNode(rectOf: size, cornerRadius: 7)
     neonBorder.strokeColor = .cyan
@@ -118,21 +124,46 @@ class CardNode: SKSpriteNode {
     }
     
     addChild(cardContainer)
+    DEBUG_drawZPos()
   }
   
   private func returnToOriginalPosition() {
-    isDragging = false
-    
     let moveBack = SKAction.move(to: originalDragPosition, duration: 0.3)
     let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
     let group = SKAction.group([moveBack, scaleDown])
     
     run(group)
+    // zPosition 원래대로
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [unowned self] in
+      zPosition = originalZPosition ?? 0
+      originalZPosition = nil
+      DEBUG_drawZPos()
+    }
+  }
+  
+  private func successDrop(_ zPos: Int?) {}
+  
+  private func cardGroupMoveCancelled() {
     
-    zPosition = if let originalZPosition {
-      originalZPosition
-    } else {
-      1
+  }
+  
+  func DEBUG_drawZPos() {
+    // DEBUG
+    if let cardContainer = childNode(withName: "cardContainer") {
+      if let zPosNode = cardContainer.childNode(withName: "DEBUG_zPosition") {
+        zPosNode.removeFromParent()
+      }
+      
+      // DEBUG 용
+      let zLabel = SKLabelNode(text: "z: \(self.zPosition)")
+      zLabel.fontSize = 10
+      zLabel.fontColor = .yellow
+      zLabel.verticalAlignmentMode = .bottom
+      zLabel.horizontalAlignmentMode = .center
+      zLabel.position = CGPoint(x: 0, y: 20)
+      zLabel.fontName = "Courier"
+      zLabel.name = "DEBUG_zPosition"
+      cardContainer.addChild(zLabel)
     }
   }
 }
@@ -166,26 +197,39 @@ extension CardNode {
         y: touchLocation.y - position.y
       )
       
+      touchStartPoint = touchLocation
+      
       // 드래그 시작 시 카드를 맨 앞으로
       originalZPosition = zPosition
-      zPosition = 100
+      zPosition = 100_000
       
       // 드래그 시작 애니메이션 (선택사항)
       let scaleUp = SKAction.scale(to: 1.1, duration: 0.1)
       run(scaleUp)
     }
+    
+    DEBUG_drawZPos()
   }
   
   override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-    guard isDragging, let touch = touches.first else { return }
+    guard isDragging, let touch = touches.first, let touchStartPoint else { return }
+    guard let parent else { return }
     
-    let touchLocation = touch.location(in: self.parent!)
+    let touchLocation = touch.location(in: parent)
+    
+    let distance = hypot(
+      touchLocation.x - touchStartPoint.x,
+      touchLocation.y - touchStartPoint.y
+    )
+    isActuallyMoved = distance > dragThreshold
     
     // 드래그 오프셋을 고려해서 위치 업데이트
     position = CGPoint(
       x: touchLocation.x - dragOffset.x,
       y: touchLocation.y - dragOffset.y
     )
+    
+    DEBUG_drawZPos()
   }
   
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -194,15 +238,30 @@ extension CardNode {
     
     isDragging = false
     
+    if isActuallyMoved {
+      // 여기서 드롭 존 체크나 원래 위치로 복귀 로직 추가 가능
+      delegate?.checkDropZone(
+        self,
+        touchPoint: touch.location(in: parent),
+        backToOriginHandler: returnToOriginalPosition,
+        successDropHandler: successDrop,
+        cardGroupMoveCancelledHandler: {}
+      )
+    } else if isGroupLeader {
+      returnToOriginalPosition()
+      delegate?.didCardGroupMoveCancelled(self, touchPoint: touch.location(in: parent))
+    } else {
+      returnToOriginalPosition()
+      zPosition = originalZPosition ?? 0
+    }
+    
+    isActuallyMoved = false
     // 드래그 종료 애니메이션
     let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
     run(scaleDown)
+    // zPosition 조정: 딜리게이트에게 전권 부여
     
-    // zPosition 원래대로
-    zPosition = originalZPosition ?? 0
-
-    // 여기서 드롭 존 체크나 원래 위치로 복귀 로직 추가 가능
-    delegate?.checkDropZone(self, touchPoint: touch.location(in: parent), backToOriginHandler: returnToOriginalPosition)
+    DEBUG_drawZPos()
   }
 }
 

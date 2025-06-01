@@ -32,6 +32,7 @@ struct TableauStack: Codable {
       return card.rank == 13 // K일 때만 빈 자리에 올 수 있음
     }
     
+    print(!card.isSameColor(as: topCard), card.rank, topCard.rank)
     return !card.isSameColor(as: topCard) && card.rank == topCard.rank - 1
   }
   
@@ -59,13 +60,12 @@ struct TableauStack: Codable {
   
   /// 카드 제거
   mutating func removeCards(from index: Int) {
+    let removeCount = cards.count - index - 1
     cards.removeSubrange(index..<cards.count)
     // 뒷면을 뒤집는 로직은 별도로 처리
     
-    // faceUpCount가 cards 배열의 총 개수보다 많아지지 않도록 강제로 조정한다.
-    if faceUpCount > cards.count {
-      faceUpCount = cards.count
-    }
+    // faceup 카운트 조절
+    faceUpCount -= removeCount
   }
   
   mutating func removeCards(from targetCards: [Card]) {
@@ -75,21 +75,17 @@ struct TableauStack: Codable {
     faceUpCount -= targetCards.count
   }
   
-  mutating func removeCards(exactly index: Int) {
+  mutating func removeCard(exactly index: Int) {
     cards.remove(at: index)
     
-    // faceUpCount가 cards 배열의 총 개수보다 많아지지 않도록 강제로 조정한다.
-    if faceUpCount > cards.count {
-      faceUpCount = cards.count
-    }
+    // faceup 카운트 조절
+    faceUpCount -= 1
   }
   
   mutating func removeTopCard() {
     cards.removeLast()
     
-    // faceUpCount가 cards 배열의 총 개수보다 많아지지 않도록 강제로 조정한다.
-    if faceUpCount > cards.count {
-      faceUpCount = cards.count
-    }
+    // faceup 카운트 조절
+    faceUpCount -= 1
   }
 }

@@ -11,10 +11,16 @@ import SpriteKit
 class GameFieldScene: SKScene {
   // 💡: Scene을 SwiftUI View 안에 두는것보다 외부로 빼는것이 속도면에서 훨씬 빠름
   
-  var viewModel: GameFieldSceneViewModel
+  var viewModel: GameFieldSceneViewModel = .init()
+  private var tableauStacks: [SKShapeNode] = []
+  private var isTableauDropZoneVisible = true
   
-  init(viewModel: GameFieldSceneViewModel, size: CGSize) {
-    self.viewModel = viewModel
+  // init(viewModel: GameFieldSceneViewModel, size: CGSize) {
+  //   self.viewModel = viewModel
+  //   super.init(size: size)
+  // }
+  
+  override init(size: CGSize) {
     super.init(size: size)
   }
   
@@ -24,10 +30,14 @@ class GameFieldScene: SKScene {
   
   override func didMove(to view: SKView) {
     anchorPoint = CGPoint(x: 0.5, y: 0.5)
+    setup()
+  }
+  
+  func setup() {
     setupBackground()
-    
     setFoundationArea()
     setTableauDropZone()
+    setStockArea()
     setTableauCardNodes()
     setStockCardNodes()
   }
@@ -47,6 +57,7 @@ class GameFieldScene: SKScene {
     for i in 0..<4 {
       let fStacksAreaNode = SKShapeNode(rect: CGRect(x: 0, y: 0, width: 50, height: 50 * 1.5))
       fStacksAreaNode.position = CGPoint(x: -40 + 55*i, y: 280)
+      fStacksAreaNode.zPosition = 0
       fStacksAreaNode.fillColor = .white.withAlphaComponent(0.5)
       DispatchQueue.main.async {
         self.viewModel.foundationStacks[i].dropZone = fStacksAreaNode.frame
@@ -58,19 +69,47 @@ class GameFieldScene: SKScene {
   func setTableauDropZone() {
     // MARK: - Tableau Stack Area
     
+    // position을 height의 절반만큼 내리기
+    let height: CGFloat = 600
+    
     for i in viewModel.tableauStacks.indices {
-      let node = SKShapeNode(rectOf: CGSize(width: 50, height: 500))
-      node.fillColor = .systemMint.withAlphaComponent(0.3)
+      let node = SKShapeNode(rectOf: CGSize(width: 50, height: height))
+      node.fillColor = .systemPink.withAlphaComponent(0.3)
+      node.strokeColor = .white
       node.position = CGPoint(
-        x: -170 + i * 55,
-        y: 0
+        x: CGFloat(-170 + i * 55),
+        y: -height / CGFloat(2) + 250
       )
+      node.zPosition = 0
       DispatchQueue.main.async {
         self.viewModel.tableauStacks[i].dropZone = node.frame
       }
       
+      tableauStacks.append(node)
       addChild(node)
     }
+  }
+  
+  func toggleTableuDropZone() {
+    isTableauDropZoneVisible.toggle()
+    
+    tableauStacks.forEach { node in
+      if isTableauDropZoneVisible {
+        node.fillColor = .systemPink.withAlphaComponent(0.3)
+        node.strokeColor = .white
+      } else {
+        node.fillColor = .clear
+        node.strokeColor = .clear
+      }
+    }
+  }
+  
+  func setStockArea() {
+    let stockAreaNode = StockAreaNode()
+    stockAreaNode.position = CGPoint(x: -170, y: 320)
+    stockAreaNode.zPosition = 0
+    stockAreaNode.delegate = viewModel
+    addChild(stockAreaNode)
   }
   
   func setTableauCardNodes() {
@@ -90,8 +129,10 @@ class GameFieldScene: SKScene {
           x: -170 + 55 * i,
           y: 200 - 50 * j
         )
+        cardNode.zPosition = CGFloat((i + 1) * 100 + j)
         
         cardNode.delegate = viewModel
+        cardNode.DEBUG_drawZPos()
         addChild(cardNode)
       }
     }
@@ -99,11 +140,6 @@ class GameFieldScene: SKScene {
   
   func setStockCardNodes() {
     // MARK: - Stock Pile setup
-    
-    let stockAreaNode = StockAreaNode()
-    stockAreaNode.position = CGPoint(x: -170, y: 320)
-    stockAreaNode.delegate = viewModel
-    addChild(stockAreaNode)
     
     for i in viewModel.stockStacks.indices {
       let card = viewModel.stockStacks[i]
@@ -123,8 +159,14 @@ class GameFieldScene: SKScene {
     }
   }
   
-  func removeStockCardNodes() {
-    viewModel.stockStacks.forEach { card in
+  func removeAllNodes() {
+    children.forEach {
+      $0.removeFromParent()
+    }
+  }
+  
+  func removeWasteCardNodes() {
+    viewModel.wasteStacks.forEach { card in
       childNode(withName: card.dataDescription)?.removeFromParent()
     }
   }
@@ -134,37 +176,92 @@ class GameFieldScene: SKScene {
       childNode(withName: card.dataDescription) as? CardNode
     }
   }
+  
+  func pasteCardsToBottom(_ cardNode: CardNode, pasteCards: [Card]) {
+    let pastCardNodes = cardNodes(cardArray: pasteCards)
+    pastCardNodes.forEach { childNode in
+      childNode.removeFromParent()
+      cardNode.addChild(childNode)
+      childNode.position = cardNode.convert(childNode.position, from: self)
+    }
+  }
+  
+  func detachCardsFromChunks(_ cardNode: CardNode, prevTopCardNode: CardNode? = nil) {
+    if cardNode.isGroupLeader {
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.3 + 0.01) {
+        _ = cardNode.children.reduce(1) { childIndex, child in
+          guard child is CardNode else {
+            return childIndex
+          }
+          
+          var newPostion = child.convert(child.position, to: self)
+          
+          if let prevTopCardNode {
+            newPostion.y = prevTopCardNode.position.y - CGFloat((childIndex + 1) * 50)
+            child.zPosition = prevTopCardNode.zPosition + 1 + childIndex
+          } else {
+            // 이거 안하면 y 위치 어긋남
+            newPostion.y += CGFloat(childIndex * 50)
+            child.zPosition = cardNode.zPosition + childIndex
+          }
+          
+          child.position = newPostion
+          child.removeFromParent()
+          self.addChild(child)
+          
+          return childIndex + 1
+        }
+      }
+      
+      cardNode.isGroupLeader = false
+    }
+  }
 }
 
 struct GameFieldSceneView: View {
-  @StateObject var viewModel = GameFieldSceneViewModel()
-  
+  // @StateObject var viewModel = GameFieldSceneViewModel()
+  @State private var faceUpCounts = ""
+  @State private var scene = GameFieldScene(
+    size: CGSize(
+      width: UIScreen.main.bounds.width,
+      height: UIScreen.main.bounds.height
+    )
+  )
+
   var body: some View {
-    VStack {
-      SpriteView(
-        scene: GameFieldScene(
-          viewModel: viewModel,
-          size: CGSize(
-            width: UIScreen.main.bounds.width,
-            height: UIScreen.main.bounds.height - 50
-          )
-        )
-      )
+    ZStack(alignment: .bottom) {
+      SpriteView(scene: scene)
       .onAppear(perform: setupCards)
-      .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height - 50)
+      .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
       .ignoresSafeArea()
-      Spacer()
-      HStack {
-        ForEach(viewModel.tableauStacks.indices, id: \.self) { i in
-          Text("\(viewModel.tableauStacks[i].faceUpCount)")
+      
+      VStack {
+        HStack {
+          Button("Reset") {
+            scene.viewModel.setNewCards()
+            scene.removeAllNodes()
+            scene.setup()
+          }
+          Button("ShowTDropZone") {
+            scene.toggleTableuDropZone()
+          }
         }
+        Text(faceUpCounts)
       }
+      .padding(.horizontal, 10)
+      .onReceive(scene.viewModel.$tableauStacks) { output in
+        faceUpCounts = scene.viewModel.tableauStacks.map {
+          "\($0.faceUpCount)"
+        }.joined(separator: " ")
+      }
+      .background(.white)
+      .offset(y: -50)
     }
   }
   
   private func setupCards() {
-    viewModel.setNewCards()
-    viewModel.setTableauStacks()
+    scene.viewModel.setNewCards()
+    // viewModel.setTableauStacks()
   }
 }
 

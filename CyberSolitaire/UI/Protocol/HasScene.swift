@@ -8,5 +8,5 @@
 import SpriteKit
 
 protocol HasScene {
-  var scene: SKScene { get }
+  var scene: SKScene { get set }
 }
