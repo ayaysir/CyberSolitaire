@@ -55,14 +55,24 @@ class GameFieldScene: SKScene {
   func setFoundationArea() {
     // 4 right-upper fStacks
     for i in 0..<4 {
-      let fStacksAreaNode = SKShapeNode(rect: CGRect(x: 0, y: 0, width: 50, height: 50 * 1.5))
+      let fStacksAreaNode = SKShapeNode(
+        rect: CGRect(x: 0, y: 0, width: 50, height: 50 * 1.5),
+        cornerRadius: 7
+      )
       fStacksAreaNode.position = CGPoint(x: -40 + 55*i, y: 280)
       fStacksAreaNode.zPosition = 0
-      fStacksAreaNode.fillColor = .white.withAlphaComponent(0.5)
+      
+
+      fStacksAreaNode.strokeColor = .cyan
+      fStacksAreaNode.lineWidth = 1
+      fStacksAreaNode.glowWidth = 1
+      fStacksAreaNode.fillColor = UIColor(hex: "#f17d85")!.withAlphaComponent(0.2)
+      // fStacksAreaNode.strokeColor = .orange
       DispatchQueue.main.async {
         self.viewModel.foundationStacks[i].dropZone = fStacksAreaNode.frame
       }
       addChild(fStacksAreaNode)
+      
     }
   }
   
@@ -127,7 +137,7 @@ class GameFieldScene: SKScene {
         
         cardNode.position = CGPoint(
           x: -170 + 55 * i,
-          y: 200 - 50 * j
+          y: 200 - Int(UI_VERTICAL_CARD_SPACING) * j
         )
         cardNode.zPosition = CGFloat((i + 1) * 100 + j)
         
@@ -197,11 +207,11 @@ class GameFieldScene: SKScene {
           var newPostion = child.convert(child.position, to: self)
           
           if let prevTopCardNode {
-            newPostion.y = prevTopCardNode.position.y - CGFloat((childIndex + 1) * 50)
+            newPostion.y = prevTopCardNode.position.y - CGFloat((childIndex + 1) * UI_VERTICAL_CARD_SPACING)
             child.zPosition = prevTopCardNode.zPosition + 1 + childIndex
           } else {
             // 이거 안하면 y 위치 어긋남
-            newPostion.y += CGFloat(childIndex * 50)
+            newPostion.y += CGFloat(childIndex * UI_VERTICAL_CARD_SPACING)
             child.zPosition = cardNode.zPosition + childIndex
           }
           
@@ -246,13 +256,17 @@ struct GameFieldSceneView: View {
             scene.toggleTableuDropZone()
           }
         }
+        .foregroundStyle(.cyan)
         Text(faceUpCounts)
+          .foregroundStyle(.white)
       }
+      .font(.custom("SevenSegmentRegular", size: 15))
       .padding(.horizontal, 10)
+      .background(.black)
       .onReceive(scene.viewModel.$tableauStacks) { output in
         faceUpCounts = scene.viewModel.tableauStacks.map {
           "\($0.faceUpCount)"
-        }.joined(separator: " ")
+        }.joined(separator: "  ")
       }
       .background(.white)
       .offset(y: -50)

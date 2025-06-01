@@ -11,6 +11,10 @@ import SwiftUI
 struct CyberSolitaireApp: App {
   let persistenceController = PersistenceController.shared
   
+  init() {
+    FontManager.registerFonts()
+  }
+  
   var body: some Scene {
     WindowGroup {
       // ContentView()

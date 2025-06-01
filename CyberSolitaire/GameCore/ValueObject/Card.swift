@@ -57,12 +57,21 @@ extension Card {
       }
     }
     
-    var symbol: String {
+    var symbolEmoji: String {
       switch self {
-      case .heart: return "♥️"
-      case .diamond: return "♦️"
-      case .club: return "♣️"
-      case .spade: return "♠️"
+      case .heart: "♥️"
+      case .diamond: "♦️"
+      case .club: "♣️"
+      case .spade: "♠️"
+      }
+    }
+    
+    var symbolText: String {
+      switch self {
+      case .heart: "\u{2665}"
+      case .diamond: "\u{2666}"
+      case .club: "\u{2663}"
+      case .spade: "\u{2660}"
       }
     }
     

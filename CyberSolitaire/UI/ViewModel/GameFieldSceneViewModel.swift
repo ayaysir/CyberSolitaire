@@ -81,7 +81,7 @@ extension GameFieldSceneViewModel {
     return .init(
       x: dropZone.midX,
       // TODO: - movingCardsCounts 기준 통일하기
-      y: 200 - 50 * CGFloat(tableauStacks[stackIndex].cards.count - movingCardsCount + 1)
+      y: 200 - UI_VERTICAL_CARD_SPACING * CGFloat(tableauStacks[stackIndex].cards.count - movingCardsCount + 1)
     )
   }
   

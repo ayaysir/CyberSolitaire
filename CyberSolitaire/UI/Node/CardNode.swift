@@ -58,9 +58,17 @@ class CardNode: SKSpriteNode {
     case .heart, .diamond:
       let gradientNode = GradientNodeFactory.makeNoisyGradientNode(
         size: self.size,
-        cornerRadius: 12,
-        colors: [.black, .red],
-        angleDegree: 135
+        cornerRadius: 7,
+        colors: [
+          UIColor(hex: "#f18bc9")!,
+          UIColor(hex: "#f4b0c8")!,
+          UIColor(hex: "#f4bbc9")!,
+          UIColor(hex: "#f4bbc9")!,
+          UIColor(hex: "#f4b0c8")!,
+          UIColor(hex: "#f18bc9")!,
+        ],
+        angleDegree: 45,
+        locations: [0.0, 0.1, 0.3, 0.7, 0.9, 1.0]
       )
       gradientNode.position = CGPoint(x: 0, y: 0)
       cardContainer.addChild(gradientNode)
@@ -84,26 +92,73 @@ class CardNode: SKSpriteNode {
       cardContainer.addChild(gradientNode)
     }
     
-    let neonBorder = SKShapeNode(rectOf: size, cornerRadius: 7)
-    neonBorder.strokeColor = .cyan
-    neonBorder.lineWidth = 0.5
-    neonBorder.glowWidth = 1
-    // neonBorder.zPosition = 1
-    cardContainer.addChild(neonBorder)
-    
     switch displayMode {
     case .fullFront:
-      let label = SKLabelNode(text: "\(card.rankString) \(card.suit.symbol)")
-      label.fontSize = 14
-      label.fontColor = .white
-      label.verticalAlignmentMode = .center
-      label.horizontalAlignmentMode = .center
-      label.position = CGPoint(x: 0, y: 0)
-      // label.zPosition = 2
-      label.fontName = "SFProText-Medium"
-      cardContainer.addChild(label)
+      let PADDING: CGFloat = 2.5
+      // 왼쪽 상단 숫자
+      let topLabel = SKLabelNode(text: "\(card.rankString)")
+      topLabel.fontSize = 18
+      topLabel.fontColor = switch card.suit {
+      case .heart, .diamond:
+        UIColor(hex: "f11c5c")!
+      case .club, .spade:
+        UIColor(hex: "141541")!
+      }
+      topLabel.fontName = "Courier"
+      topLabel.verticalAlignmentMode = .top
+      topLabel.horizontalAlignmentMode = .left
+      topLabel.numberOfLines = 1
+      topLabel.preferredMaxLayoutWidth = 20
+      topLabel.lineBreakMode = .byWordWrapping
+      topLabel.position = CGPoint(
+        x: -self.size.width / 2 + PADDING,
+        y: self.size.height / 2 - PADDING
+      )
+      
+      let topCode = topLabel.copy() as! SKLabelNode
+      topCode.fontSize = 18
+      topCode.text = card.suit.symbolText
+      topCode.position = CGPoint(
+        x: -self.size.width / 2 + PADDING,
+        y: topLabel.position.y - 14
+      )
+      
+      let labels = SKNode()
+      labels.addChild(topLabel)
+      labels.addChild(topCode)
+      cardContainer.addChild(labels)
+
+      // 오른쪽 하단 숫자 (뒤집기)
+      
+      let rotatedLabels = labels.copy() as! SKNode
+      rotatedLabels.zRotation = .pi
+      cardContainer.addChild(rotatedLabels)
+
+      // 가운데 이모지
+      let centerLabel = SKLabelNode(text: card.suit.symbolEmoji)
+      centerLabel.fontSize = 20
+      centerLabel.fontColor = .white
+      centerLabel.fontName = "SFProText-Medium"
+      centerLabel.verticalAlignmentMode = .center
+      centerLabel.horizontalAlignmentMode = .center
+      centerLabel.position = CGPoint(x: 0, y: 0)
+      cardContainer.addChild(centerLabel)
+      
+      // border
+      let neonBorder = SKShapeNode(rectOf: size, cornerRadius: 7)
+      neonBorder.strokeColor = switch card.suit {
+        case .heart, .diamond:
+          // UIColor(hex: "#f5b7ce")!
+        UIColor(hex: "#ff8786")!
+        case .club, .spade:
+          .cyan
+      }
+      neonBorder.lineWidth = 1
+      neonBorder.glowWidth = 1
+      // neonBorder.zPosition = 1
+      cardContainer.addChild(neonBorder)
     case .partialFront:
-      let label = SKLabelNode(text: "\(card.rankString) \(card.suit.symbol)")
+      let label = SKLabelNode(text: "\(card.rankString) \(card.suit.symbolEmoji)")
       label.fontSize = 10
       label.fontColor = card.suit.color == .red ? .red : .black
       label.verticalAlignmentMode = .top
@@ -121,6 +176,12 @@ class CardNode: SKSpriteNode {
       )
       pattern.position = .zero
       cardContainer.addChild(pattern)
+      
+      let neonBorder = SKShapeNode(rectOf: size, cornerRadius: 7)
+      neonBorder.strokeColor = UIColor(hex: "9b28bf")!
+      neonBorder.lineWidth = 1
+      neonBorder.glowWidth = 1
+      cardContainer.addChild(neonBorder)
     }
     
     addChild(cardContainer)
@@ -148,6 +209,9 @@ class CardNode: SKSpriteNode {
   }
   
   func DEBUG_drawZPos() {
+    guard false else {
+      return
+    }
     // DEBUG
     if let cardContainer = childNode(withName: "cardContainer") {
       if let zPosNode = cardContainer.childNode(withName: "DEBUG_zPosition") {
@@ -155,12 +219,12 @@ class CardNode: SKSpriteNode {
       }
       
       // DEBUG 용
-      let zLabel = SKLabelNode(text: "z: \(self.zPosition)")
-      zLabel.fontSize = 10
+      let zLabel = SKLabelNode(text: "z:\(self.zPosition)")
+      zLabel.fontSize = 8
       zLabel.fontColor = .yellow
       zLabel.verticalAlignmentMode = .bottom
-      zLabel.horizontalAlignmentMode = .center
-      zLabel.position = CGPoint(x: 0, y: 20)
+      zLabel.horizontalAlignmentMode = .left
+      zLabel.position = CGPoint(x: -3, y: 25)
       zLabel.fontName = "Courier"
       zLabel.name = "DEBUG_zPosition"
       cardContainer.addChild(zLabel)
@@ -308,12 +372,12 @@ class CardPreviewScene: SKScene {
     addChild(cardNode2)
     
     let card3 = Card(suit: .spade, rank: 13)
-    let cardNode3 = CardNode(card: card3, displayMode: .partialFront)
+    let cardNode3 = CardNode(card: card3, displayMode: .fullFront)
     cardNode3.position = CGPoint(x: 100, y: 50)
     addChild(cardNode3)
     
     let card4 = Card(suit: .heart, rank: 12)
-    let cardNode4 = CardNode(card: card4, displayMode: .partialFront)
+    let cardNode4 = CardNode(card: card4, displayMode: .fullFront)
     cardNode4.position = CGPoint(x: 100, y: 30)
     addChild(cardNode4)
     
@@ -321,6 +385,16 @@ class CardPreviewScene: SKScene {
     let cardNode5 = CardNode(card: card5, displayMode: .fullFront)
     cardNode5.position = CGPoint(x: 100, y: 10)
     addChild(cardNode5)
+    
+    let card6 = Card(suit: .club, rank: 13)
+    let cardNode6 = CardNode(card: card6, displayMode: .fullFront)
+    cardNode6.position = CGPoint(x: 0, y: -100)
+    addChild(cardNode6)
+    
+    let card7 = Card(suit: .diamond, rank: 9)
+    let cardNode7 = CardNode(card: card7, displayMode: .fullFront)
+    cardNode7.position = CGPoint(x: 80, y: -100)
+    addChild(cardNode7)
   }
 }
 
