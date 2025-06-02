@@ -67,6 +67,8 @@ extension GameFieldSceneViewModel: CardNodeDelegate {
       
       print("isGroupLeader", cardNode.isGroupLeader)
       print("canStack:", tableauStacks[targetStackIndex].canStack(cardNode.card))
+      
+      // case 1-3: 테이블 스택에서 2장 이상의 카드를 다른 스택으로 옮길 수 있는 경우
       if cardNode.isGroupLeader, tableauStacks[targetStackIndex].canStack(cardNode.card) {
         let prevTopCard = tableauStacks[targetStackIndex].topCard
         
@@ -96,28 +98,16 @@ extension GameFieldSceneViewModel: CardNodeDelegate {
         }
       }
       
-      // // case 1-3: 테이블 스택에서 2장 이상의 카드를 다른 스택으로 옮길 수 있는 경우
-      // if let originStackIndex = tableauStacksIndex(containingCard: cardNode.card),
-      //    // let movingCardChunks,
-      //    tableauStacks[originStackIndex].faceUpCount > 1 {
-      //   // print(tableauStacks[targetStackIndex].canStack(cardNode.card), cardNode.card)
-      //   
-      //   if tableauStacks[targetStackIndex].canStack(cardNode.card),
-      //      let movingCardChunks = extractCards(cardNode.card, fromTableauStackIndex: originStackIndex) {
-      //     stackMultipleCardsOnTableau(
-      //       movingCardChunks,
-      //       firstCardNode: cardNode,
-      //       stackIndex: targetStackIndex
-      //     ) { [unowned self] in
-      //       
-      //       tableauStacks[originStackIndex].removeCards(from: movingCardChunks)
-      //     }
-      //   } else {
-      //     backToOriginHandler()
-      //   }
-      //   
-      //   return
-      // }
+      // case 1-4: Foundation에서 tableau로 이동
+      if foundationStackIndex(containingCard: cardNode.card) != nil,
+         tableauStacks[targetStackIndex].canStack(cardNode.card) {
+        stackCardOnTableau(cardNode, stackIndex: targetStackIndex) { [unowned self] in
+          removeCardFromContainingFoundationStack(cardNode.card)
+        }
+        
+        return
+      }
+      
       print("mlt after:", tableauStacks[targetStackIndex].cards.count, tableauStacks[targetStackIndex].cards)
     }
     

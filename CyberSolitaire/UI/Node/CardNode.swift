@@ -10,6 +10,8 @@ import SpriteKit
 import BGSMM_DevKit
 
 class CardNode: SKSpriteNode {
+  let DEBUG_showZPos = false
+  
   var card: Card
   var width: CGFloat = 50
   var displayMode: Card.DisplayMode
@@ -209,7 +211,7 @@ class CardNode: SKSpriteNode {
   }
   
   func DEBUG_drawZPos() {
-    guard false else {
+    guard DEBUG_showZPos else {
       return
     }
     // DEBUG

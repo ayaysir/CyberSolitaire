@@ -13,7 +13,7 @@ class GameFieldScene: SKScene {
   
   var viewModel: GameFieldSceneViewModel = .init()
   private var tableauStacks: [SKShapeNode] = []
-  private var isTableauDropZoneVisible = true
+  private var isTableauDropZoneVisible = false
   
   // init(viewModel: GameFieldSceneViewModel, size: CGSize) {
   //   self.viewModel = viewModel
@@ -62,7 +62,6 @@ class GameFieldScene: SKScene {
       fStacksAreaNode.position = CGPoint(x: -40 + 55*i, y: 280)
       fStacksAreaNode.zPosition = 0
       
-
       fStacksAreaNode.strokeColor = .cyan
       fStacksAreaNode.lineWidth = 1
       fStacksAreaNode.glowWidth = 1
@@ -71,8 +70,8 @@ class GameFieldScene: SKScene {
       DispatchQueue.main.async {
         self.viewModel.foundationStacks[i].dropZone = fStacksAreaNode.frame
       }
-      addChild(fStacksAreaNode)
       
+      addChild(fStacksAreaNode)
     }
   }
   
@@ -83,9 +82,16 @@ class GameFieldScene: SKScene {
     let height: CGFloat = 600
     
     for i in viewModel.tableauStacks.indices {
+      
       let node = SKShapeNode(rectOf: CGSize(width: 50, height: height))
-      node.fillColor = .systemPink.withAlphaComponent(0.3)
-      node.strokeColor = .white
+      if isTableauDropZoneVisible {
+        node.fillColor = .systemTeal.withAlphaComponent(0.3)
+        node.strokeColor = .white.withAlphaComponent(0.5)
+      } else {
+        node.fillColor = .clear
+        node.strokeColor = .clear
+      }
+      
       node.position = CGPoint(
         x: CGFloat(-170 + i * 55),
         y: -height / CGFloat(2) + 250
@@ -105,8 +111,8 @@ class GameFieldScene: SKScene {
     
     tableauStacks.forEach { node in
       if isTableauDropZoneVisible {
-        node.fillColor = .systemPink.withAlphaComponent(0.3)
-        node.strokeColor = .white
+        node.fillColor = .systemTeal.withAlphaComponent(0.3)
+        node.strokeColor = .white.withAlphaComponent(0.5)
       } else {
         node.fillColor = .clear
         node.strokeColor = .clear
